@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Mini Postman</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body class="dashboard-page">
+    <main class="page-shell">
+      <section class="hero glass-panel">
+        <div>
+          <span class="eyebrow">API TESTING TOOL</span>
+          <h1>My Mini Postman</h1>
+          <p>
+            Test APIs, inspect JSON responses, and keep recent requests in one secure dashboard.
+          </p>
+          <div class="pill-row">
+            <div class="pill-group">
+              <span>GET</span>
+              <span>POST</span>
+              <span>PUT</span>
+              <span>PATCH</span>
+              <span>DELETE</span>
+            </div>
+            <span>Headers + JSON Body</span>
+            <span>MySQL Login + History</span>
+          </div>
+        </div>
+        <div class="hero-side">
+          <button
+            id="themeToggle"
+            class="icon-button mode-toggle"
+            type="button"
+            aria-label="Switch theme"
+            title="Switch theme"
+          ></button>
+          <div class="user-chip">
+            <span>Logged in as</span>
+            <strong id="userName">...</strong>
+          </div>
+          <button id="logoutButton" class="secondary-button compact-action">Logout</button>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <div class="builder glass-panel">
+          <div class="section-head">
+            <h2>API TESTING TOOL</h2>
+            <span class="badge">Mini version</span>
+          </div>
+
+          <label class="field-block">
+            <span>URL</span>
+            <input id="apiUrl" type="url" placeholder="https://randomuser.me/api/" />
+          </label>
+
+          <div class="method-row">
+            <label class="field-block compact">
+              <span>HTTP Method</span>
+              <select id="httpMethod">
+                <option>GET</option>
+                <option>POST</option>
+                <option>PUT</option>
+                <option>PATCH</option>
+                <option>DELETE</option>
+              </select>
+            </label>
+            <div class="method-box">
+              <div class="method-chip-row">
+                <span>GET</span>
+                <span>POST</span>
+                <span>PUT</span>
+                <span>PATCH</span>
+                <span>DELETE</span>
+              </div>
+              <div class="method-hint">
+                `GET` fetches data, `POST` creates, `PUT/PATCH` updates, and `DELETE` removes.
+              </div>
+            </div>
+          </div>
+
+          <div class="section-head">
+            <h3>Headers</h3>
+            <button id="addHeader" class="secondary-button small">Add Header</button>
+          </div>
+          <p class="muted">Add custom headers if your API needs them.</p>
+          <div id="headersList" class="headers-list"></div>
+
+          <label class="field-block">
+            <span>Body (JSON only)</span>
+            <textarea id="requestBody" rows="8" placeholder='{\n  "title": "hello"\n}'></textarea>
+          </label>
+
+          <button id="sendRequest" class="primary-button coral wide">Send Request</button>
+        </div>
+
+        <div class="response-stack">
+          <div class="glass-panel response-panel">
+            <div class="section-head">
+              <h2>Response</h2>
+              <div class="response-actions">
+                <span class="badge">Live output</span>
+                <button
+                  id="copyJson"
+                  class="icon-button copy-button"
+                  type="button"
+                  aria-label="Copy response"
+                  title="Copy response"
+                ></button>
+              </div>
+            </div>
+
+            <div class="metrics-grid">
+              <article>
+                <span class="metric-label">Status</span>
+                <strong id="statusCode">-</strong>
+              </article>
+              <article>
+                <span class="metric-label">Time</span>
+                <strong id="responseTime">-</strong>
+              </article>
+            </div>
+
+            <div class="response-frame">
+              <pre id="responseOutput" class="response-output">Response will appear here...</pre>
+            </div>
+          </div>
+
+          <div class="glass-panel info-panel">
+            <div class="section-head">
+              <h2>Where can you use this API?</h2>
+              <span class="badge">Simple ideas</span>
+            </div>
+            <div id="suggestionList" class="suggestion-list">
+              <p>Test an API first to see suggestions here.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass-panel history-wide">
+        <div class="section-head">
+          <h2>Recent Requests</h2>
+          <span class="badge">MySQL saved</span>
+        </div>
+        <div id="historyList" class="history-list history-grid">
+          <p>No recent requests yet.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

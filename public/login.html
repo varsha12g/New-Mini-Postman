@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini Postman Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body class="auth-shell">
+    <main class="auth-layout">
+      <section class="auth-copy glass-panel">
+        <span class="eyebrow">API TESTING TOOL</span>
+        <h1>New Mini Postman</h1>
+        <p>
+          Same clean tester experience, now with login protection and MySQL-backed accounts.
+        </p>
+        <div class="bullet-grid">
+          <article>
+            <h2>Secure access</h2>
+            <p>Login before opening the tester dashboard and keep usage tied to your account.</p>
+          </article>
+          <article>
+            <h2>Saved activity</h2>
+            <p>Recent requests stay visible so you can quickly retry endpoints during development.</p>
+          </article>
+          <article>
+            <h2>Fast testing</h2>
+            <p>Send `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` requests from one screen.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="auth-card glass-panel">
+        <div class="tab-row">
+          <button class="tab-button active" data-tab="login">Login</button>
+          <button class="tab-button" data-tab="register">Create Account</button>
+        </div>
+
+        <form id="loginForm" class="auth-form active">
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Enter password" required />
+          </label>
+          <button type="submit" class="primary-button">Login to Dashboard</button>
+        </form>
+
+        <form id="registerForm" class="auth-form">
+          <label>
+            <span>Full Name</span>
+            <input type="text" name="name" placeholder="Your name" required />
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Minimum 6 characters" required />
+          </label>
+          <button type="submit" class="primary-button coral">Create and Continue</button>
+        </form>
+
+        <p id="authMessage" class="status-text"></p>
+      </section>
+    </main>
+
+    <script src="/assets/login.js"></script>
+  </body>
+</html>

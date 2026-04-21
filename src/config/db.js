@@ -1,6 +1,6 @@
 const mysql = require("mysql2/promise");
 
-const requiredConfig = ["DB_HOST", "DB_USER", "DB_NAME"];
+const requiredConfig = ["DATABASE_URL"];
 
 for (const key of requiredConfig) {
   if (!process.env[key]) {
@@ -11,26 +11,12 @@ for (const key of requiredConfig) {
 let pool;
 
 function createPool() {
-  return mysql.createPool({
-    host: process.env.DB_HOST || "localhost",
-    port: Number(process.env.DB_PORT) || 3306,
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "",
-    database: process.env.DB_NAME || "mini_postman",
-    waitForConnections: true,
-    connectionLimit: 10
-  });
+  return mysql.createPool(process.env.DATABASE_URL);
 }
 
 async function initializeDatabase() {
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST || "localhost",
-    port: Number(process.env.DB_PORT) || 3306,
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || ""
-  });
+  const connection = await mysql.createConnection(process.env.DATABASE_URL);
 
-  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME || "mini_postman"}\``);
   await connection.end();
 
   pool = createPool();

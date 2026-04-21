@@ -1,10 +1,17 @@
 const API_BASE_URL = window.APP_CONFIG?.apiBaseUrl || "http://127.0.0.1:5000/api";
 const TOKEN_STORAGE_KEY = "mini-postman-token";
 const USER_STORAGE_KEY = "mini-postman-user";
+const QUICK_HISTORY_STORAGE_KEY = "mini-postman-quick-history";
 
 const userName = document.getElementById("userName");
-const logoutButton = document.getElementById("logoutButton");
 const themeToggleButton = document.getElementById("themeToggle");
+const profileMenuButton = document.getElementById("profileMenuButton");
+const quickMenu = document.getElementById("quickMenu");
+const historyShortcut = document.getElementById("historyShortcut");
+const menuHistoryList = document.getElementById("menuHistoryList");
+const historyModal = document.getElementById("historyModal");
+const historyModalBackdrop = document.getElementById("historyModalBackdrop");
+const closeHistoryModalButton = document.getElementById("closeHistoryModal");
 const addHeaderButton = document.getElementById("addHeader");
 const headersList = document.getElementById("headersList");
 const sendRequestButton = document.getElementById("sendRequest");
@@ -16,6 +23,7 @@ const responseTime = document.getElementById("responseTime");
 const responseOutput = document.getElementById("responseOutput");
 const suggestionList = document.getElementById("suggestionList");
 const historyList = document.getElementById("historyList");
+const historySection = document.getElementById("historySection");
 const copyJsonButton = document.getElementById("copyJson");
 
 const THEME_STORAGE_KEY = "mini-postman-theme";
@@ -28,6 +36,29 @@ function getToken() {
 function clearAuth() {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   localStorage.removeItem(USER_STORAGE_KEY);
+}
+
+function getQuickHistory() {
+  try {
+    const storedValue = localStorage.getItem(QUICK_HISTORY_STORAGE_KEY);
+    return storedValue ? JSON.parse(storedValue) : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveQuickHistory(items) {
+  localStorage.setItem(QUICK_HISTORY_STORAGE_KEY, JSON.stringify(items));
+}
+
+function setQuickMenuState(isOpen) {
+  quickMenu.hidden = !isOpen;
+  profileMenuButton.setAttribute("aria-expanded", String(isOpen));
+}
+
+function setHistoryModalState(isOpen) {
+  historyModal.hidden = !isOpen;
+  document.body.classList.toggle("modal-open", isOpen);
 }
 
 async function apiFetch(path, options = {}) {
@@ -260,6 +291,65 @@ function renderHistory(items) {
   });
 }
 
+function renderQuickHistory(items) {
+  menuHistoryList.innerHTML = "";
+
+  if (!items.length) {
+    const emptyText = document.createElement("p");
+    emptyText.textContent = "No quick history yet.";
+    menuHistoryList.appendChild(emptyText);
+    return;
+  }
+
+  items.forEach((item) => {
+    const entry = document.createElement("button");
+    entry.type = "button";
+    entry.className = "menu-history-item";
+
+    const topLine = document.createElement("div");
+    topLine.className = "menu-history-top";
+
+    const method = document.createElement("strong");
+    method.textContent = item.method;
+
+    const meta = document.createElement("span");
+    meta.textContent = `${item.status_code ?? "-"} • ${item.response_time_ms ?? "-"} ms`;
+
+    topLine.append(method, meta);
+
+    const url = document.createElement("p");
+    url.textContent = item.url;
+
+    entry.append(topLine, url);
+    entry.addEventListener("click", () => {
+      apiUrlInput.value = item.url || "";
+      httpMethodSelect.value = item.method || "GET";
+      setHistoryModalState(false);
+      apiUrlInput.focus();
+    });
+
+    menuHistoryList.appendChild(entry);
+  });
+}
+
+function rememberQuickHistory(item) {
+  const nextItems = [item, ...getQuickHistory()]
+    .filter(
+      (entry, index, allItems) =>
+        allItems.findIndex(
+          (candidate) =>
+            candidate.url === entry.url &&
+            candidate.method === entry.method &&
+            candidate.status_code === entry.status_code &&
+            candidate.response_time_ms === entry.response_time_ms
+        ) === index
+    )
+    .slice(0, 6);
+
+  saveQuickHistory(nextItems);
+  renderQuickHistory(nextItems);
+}
+
 async function loadSession() {
   const response = await apiFetch("/config");
   const data = await response.json();
@@ -271,6 +361,39 @@ async function loadHistory() {
   const data = await response.json();
   renderHistory(data.items || []);
 }
+
+profileMenuButton.addEventListener("click", () => {
+  setQuickMenuState(quickMenu.hidden);
+});
+
+historyShortcut.addEventListener("click", () => {
+  setQuickMenuState(false);
+  setHistoryModalState(true);
+});
+
+closeHistoryModalButton.addEventListener("click", () => {
+  setHistoryModalState(false);
+});
+
+historyModalBackdrop.addEventListener("click", () => {
+  setHistoryModalState(false);
+});
+
+document.addEventListener("click", (event) => {
+  if (!quickMenu.hidden && !event.target.closest(".menu-wrap")) {
+    setQuickMenuState(false);
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !historyModal.hidden) {
+    setHistoryModalState(false);
+  }
+
+  if (event.key === "Escape" && !quickMenu.hidden) {
+    setQuickMenuState(false);
+  }
+});
 
 themeToggleButton.addEventListener("click", () => {
   const nextTheme = document.body.dataset.theme === "light" ? "dark" : "light";
@@ -317,6 +440,12 @@ sendRequestButton.addEventListener("click", async () => {
     latestResponse = JSON.stringify(data.data, null, 2);
     setResponseContent(latestResponse, "json");
     renderSuggestions(data.suggestions || []);
+    rememberQuickHistory({
+      url,
+      method,
+      status_code: data.status,
+      response_time_ms: data.duration
+    });
     await loadHistory();
   } catch (error) {
     latestResponse = "";
@@ -343,24 +472,16 @@ copyJsonButton.addEventListener("click", async () => {
   }, 1200);
 });
 
-logoutButton.addEventListener("click", async () => {
-  try {
-    await apiFetch("/auth/logout", { method: "POST" });
-  } catch (error) {
-    // Ignore logout API errors because local token cleanup is enough.
-  }
-
-  clearAuth();
-  window.location.href = "/login";
-});
-
 if (!getToken()) {
   window.location.href = "/login";
 }
 
 loadTheme();
+setQuickMenuState(false);
+setHistoryModalState(false);
 copyJsonButton.innerHTML = getCopyIconMarkup();
 createHeaderRow({ key: "Accept", value: "application/json" });
 setResponseContent("Response will appear here...", "empty");
+renderQuickHistory(getQuickHistory());
 loadSession();
 loadHistory();

@@ -41,11 +41,27 @@
             aria-label="Switch theme"
             title="Switch theme"
           ></button>
-          <div class="user-chip">
-            <span>Logged in as</span>
-            <strong id="userName">...</strong>
+          <div class="menu-wrap">
+            <button
+              id="profileMenuButton"
+              class="icon-button menu-button"
+              type="button"
+              aria-label="Open quick menu"
+              title="Open quick menu"
+              aria-expanded="false"
+            >
+              <span aria-hidden="true">&#8942;</span>
+            </button>
+            <div id="quickMenu" class="quick-menu" hidden>
+              <div class="user-chip menu-user-chip">
+                <span>Logged in as</span>
+                <strong id="userName">...</strong>
+              </div>
+              <button id="historyShortcut" class="secondary-button menu-action menu-history-trigger" type="button">
+                History
+              </button>
+            </div>
           </div>
-          <button id="logoutButton" class="secondary-button compact-action">Logout</button>
         </div>
       </section>
 
@@ -53,7 +69,7 @@
         <div class="builder glass-panel">
           <div class="section-head">
             <h2>API TESTING TOOL</h2>
-            <span class="badge">Connected frontend</span>
+            <span class="badge">Mini Postman</span>
           </div>
 
           <label class="field-block">
@@ -72,17 +88,8 @@
                 <option>DELETE</option>
               </select>
             </label>
-            <div class="method-box">
-              <div class="method-chip-row">
-                <span>GET</span>
-                <span>POST</span>
-                <span>PUT</span>
-                <span>PATCH</span>
-                <span>DELETE</span>
-              </div>
-              <div class="method-hint">
-                `GET` fetches data, `POST` creates, `PUT/PATCH` updates, and `DELETE` removes.
-              </div>
+            <div class="method-hint">
+              `GET` fetches data, `POST` creates, `PUT/PATCH` updates, and `DELETE` removes.
             </div>
           </div>
 
@@ -145,16 +152,40 @@
         </div>
       </section>
 
-      <section class="glass-panel history-wide">
+      <section id="historySection" class="glass-panel history-wide">
         <div class="section-head">
           <h2>Recent Requests</h2>
-          <span class="badge">MongoDB saved</span>
+          <span class="badge">History</span>
         </div>
         <div id="historyList" class="history-list history-grid">
           <p>No recent requests yet.</p>
         </div>
       </section>
     </main>
+
+    <div id="historyModal" class="modal-shell" hidden>
+      <div id="historyModalBackdrop" class="modal-backdrop"></div>
+      <section class="modal-card glass-panel" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+        <div class="section-head modal-head">
+          <div>
+            <h2 id="historyModalTitle">Quick History</h2>
+            <p class="muted modal-copy">This history is stored separately from the main list.</p>
+          </div>
+          <button
+            id="closeHistoryModal"
+            class="icon-button"
+            type="button"
+            aria-label="Close history popup"
+            title="Close history popup"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div id="menuHistoryList" class="menu-history-list modal-history-list">
+          <p>No quick history yet.</p>
+        </div>
+      </section>
+    </div>
 
     <script src="/config.js"></script>
     <script src="/assets/app.js"></script>

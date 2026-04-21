@@ -1,20 +1,14 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "frontend/server.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "frontend/public/**"
-        ]
-      }
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "frontend/public/**"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "frontend/server.js"
+      "source": "/(.*)",
+      "destination": "/api/index"
     }
   ]
 }

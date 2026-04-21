@@ -1,3 +1,7 @@
+const API_BASE_URL = window.APP_CONFIG?.apiBaseUrl || "http://127.0.0.1:5000/api";
+const TOKEN_STORAGE_KEY = "mini-postman-token";
+const USER_STORAGE_KEY = "mini-postman-user";
+
 const userName = document.getElementById("userName");
 const logoutButton = document.getElementById("logoutButton");
 const themeToggleButton = document.getElementById("themeToggle");
@@ -16,6 +20,40 @@ const copyJsonButton = document.getElementById("copyJson");
 
 const THEME_STORAGE_KEY = "mini-postman-theme";
 let latestResponse = "";
+
+function getToken() {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+function clearAuth() {
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(USER_STORAGE_KEY);
+}
+
+async function apiFetch(path, options = {}) {
+  const token = getToken();
+  const headers = {
+    ...(options.headers || {})
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    credentials: "omit",
+    headers
+  });
+
+  if (response.status === 401) {
+    clearAuth();
+    window.location.href = "/login";
+    throw new Error("Please login again.");
+  }
+
+  return response;
+}
 
 function getThemeButtonMarkup(theme) {
   return theme === "light"
@@ -193,7 +231,7 @@ function renderHistory(items) {
       deleteButton.textContent = "Deleting...";
 
       try {
-        const response = await fetch(`/api/history/${item.id}`, {
+        const response = await apiFetch(`/history/${item.id}`, {
           method: "DELETE"
         });
         const data = await response.json();
@@ -223,19 +261,13 @@ function renderHistory(items) {
 }
 
 async function loadSession() {
-  const response = await fetch("/api/config");
-
-  if (response.status === 401) {
-    window.location.href = "/login";
-    return;
-  }
-
+  const response = await apiFetch("/config");
   const data = await response.json();
   userName.textContent = data.user.name;
 }
 
 async function loadHistory() {
-  const response = await fetch("/api/history");
+  const response = await apiFetch("/history");
   const data = await response.json();
   renderHistory(data.items || []);
 }
@@ -261,7 +293,7 @@ sendRequestButton.addEventListener("click", async () => {
   sendRequestButton.textContent = "Sending...";
 
   try {
-    const response = await fetch("/api/request", {
+    const response = await apiFetch("/request", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -291,7 +323,7 @@ sendRequestButton.addEventListener("click", async () => {
     setResponseContent(error.message, "error");
     statusCode.textContent = "Error";
     responseTime.textContent = "-";
-    renderSuggestions(["Check the URL, method, headers, or JSON body and try again."]);
+    renderSuggestions(["Check the URL, method, headers, JSON body, token, or backend connection and try again."]);
   } finally {
     sendRequestButton.disabled = false;
     sendRequestButton.textContent = "Send Request";
@@ -312,9 +344,19 @@ copyJsonButton.addEventListener("click", async () => {
 });
 
 logoutButton.addEventListener("click", async () => {
-  await fetch("/api/auth/logout", { method: "POST" });
+  try {
+    await apiFetch("/auth/logout", { method: "POST" });
+  } catch (error) {
+    // Ignore logout API errors because local token cleanup is enough.
+  }
+
+  clearAuth();
   window.location.href = "/login";
 });
+
+if (!getToken()) {
+  window.location.href = "/login";
+}
 
 loadTheme();
 copyJsonButton.innerHTML = getCopyIconMarkup();

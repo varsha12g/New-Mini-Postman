@@ -18,20 +18,20 @@
         <span class="eyebrow">API TESTING TOOL</span>
         <h1>New Mini Postman</h1>
         <p>
-          Same clean tester experience, now with login protection and MySQL-backed accounts.
+          Separate frontend and backend, JWT login protection, MongoDB-backed accounts, and API testing from one dashboard.
         </p>
         <div class="bullet-grid">
           <article>
-            <h2>Secure access</h2>
-            <p>Login before opening the tester dashboard and keep usage tied to your account.</p>
+            <h2>JWT auth</h2>
+            <p>Login with token-based auth so the frontend and backend can run on different ports cleanly.</p>
           </article>
           <article>
             <h2>Saved activity</h2>
-            <p>Recent requests stay visible so you can quickly retry endpoints during development.</p>
+            <p>Recent requests stay linked to your account in MongoDB for quick retries and debugging.</p>
           </article>
           <article>
-            <h2>Fast testing</h2>
-            <p>Send `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` requests from one screen.</p>
+            <h2>Connected apps</h2>
+            <p>The frontend talks to the backend API through CORS-safe requests using a configured API base URL.</p>
           </article>
         </div>
       </section>
@@ -74,6 +74,7 @@
       </section>
     </main>
 
+    <script src="/config.js"></script>
     <script src="/assets/login.js"></script>
   </body>
 </html>

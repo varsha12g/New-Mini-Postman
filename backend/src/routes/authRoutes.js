@@ -1,31 +1,35 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 
-const { getPool } = require("../config/db");
+const { getCollections, serializeUser } = require("../config/db");
+const { requireAuth, signAuthToken } = require("../middleware/auth");
 
 const router = express.Router();
 
-router.get("/session", (req, res) => {
-  if (!req.session.user) {
-    return res.json({
-      authenticated: false
-    });
-  }
-
-  return res.json({
+router.get("/me", requireAuth, (req, res) => {
+  res.json({
     authenticated: true,
-    user: req.session.user
+    user: req.user
   });
 });
 
 router.post("/register", async (req, res, next) => {
   try {
-    const pool = getPool();
+    const { users } = getCollections();
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "Name, email, and password are required."
+      });
+    }
+
+    const trimmedName = String(name).trim();
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    if (!trimmedName) {
+      return res.status(400).json({
+        message: "Name is required."
       });
     }
 
@@ -35,39 +39,47 @@ router.post("/register", async (req, res, next) => {
       });
     }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
-    const [existingUsers] = await pool.query("SELECT id FROM users WHERE email = ?", [normalizedEmail]);
+    const existingUser = await users.findOne({ email: normalizedEmail }, { projection: { _id: 1 } });
 
-    if (existingUsers.length > 0) {
+    if (existingUser) {
       return res.status(409).json({
         message: "This email is already registered."
       });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const [result] = await pool.query(
-      "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
-      [String(name).trim(), normalizedEmail, passwordHash]
-    );
+    const userDocument = {
+      name: trimmedName,
+      email: normalizedEmail,
+      passwordHash,
+      createdAt: new Date()
+    };
 
-    req.session.user = {
-      id: result.insertId,
-      name: String(name).trim(),
-      email: normalizedEmail
+    const result = await users.insertOne(userDocument);
+    const savedUser = {
+      ...userDocument,
+      _id: result.insertedId
     };
 
     return res.status(201).json({
       message: "Account created successfully.",
-      user: req.session.user
+      token: signAuthToken(savedUser),
+      user: serializeUser(savedUser)
     });
   } catch (error) {
+    if (error && error.code === 11000) {
+      return res.status(409).json({
+        message: "This email is already registered."
+      });
+    }
+
     return next(error);
   }
 });
 
 router.post("/login", async (req, res, next) => {
   try {
-    const pool = getPool();
+    const { users } = getCollections();
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -77,19 +89,15 @@ router.post("/login", async (req, res, next) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    const [rows] = await pool.query(
-      "SELECT id, name, email, password_hash FROM users WHERE email = ? LIMIT 1",
-      [normalizedEmail]
-    );
+    const user = await users.findOne({ email: normalizedEmail });
 
-    if (rows.length === 0) {
+    if (!user) {
       return res.status(401).json({
         message: "Invalid email or password."
       });
     }
 
-    const user = rows[0];
-    const isValid = await bcrypt.compare(password, user.password_hash);
+    const isValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValid) {
       return res.status(401).json({
@@ -97,31 +105,19 @@ router.post("/login", async (req, res, next) => {
       });
     }
 
-    req.session.user = {
-      id: user.id,
-      name: user.name,
-      email: user.email
-    };
-
     return res.json({
       message: "Logged in successfully.",
-      user: req.session.user
+      token: signAuthToken(user),
+      user: serializeUser(user)
     });
   } catch (error) {
     return next(error);
   }
 });
 
-router.post("/logout", (req, res, next) => {
-  req.session.destroy((error) => {
-    if (error) {
-      return next(error);
-    }
-
-    res.clearCookie("connect.sid");
-    return res.json({
-      message: "Logged out successfully."
-    });
+router.post("/logout", (req, res) => {
+  res.json({
+    message: "Logged out successfully."
   });
 });
 

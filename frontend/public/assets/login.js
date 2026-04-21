@@ -1,9 +1,26 @@
+const API_BASE_URL = window.APP_CONFIG?.apiBaseUrl || "http://127.0.0.1:5000/api";
+const TOKEN_STORAGE_KEY = "mini-postman-token";
+const USER_STORAGE_KEY = "mini-postman-user";
+
 const tabButtons = document.querySelectorAll(".tab-button");
 const forms = {
   login: document.getElementById("loginForm"),
   register: document.getElementById("registerForm")
 };
 const authMessage = document.getElementById("authMessage");
+
+function saveAuth(data) {
+  localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+}
+
+function getToken() {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+function redirectToApp() {
+  window.location.href = "/app";
+}
 
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -21,6 +38,7 @@ tabButtons.forEach((button) => {
 async function submitAuthForm(url, payload) {
   const response = await fetch(url, {
     method: "POST",
+    credentials: "omit",
     headers: {
       "Content-Type": "application/json"
     },
@@ -42,8 +60,9 @@ forms.login.addEventListener("submit", async (event) => {
 
   try {
     const formData = new FormData(forms.login);
-    await submitAuthForm("/api/auth/login", Object.fromEntries(formData.entries()));
-    window.location.href = "/app";
+    const data = await submitAuthForm(`${API_BASE_URL}/auth/login`, Object.fromEntries(formData.entries()));
+    saveAuth(data);
+    redirectToApp();
   } catch (error) {
     authMessage.textContent = error.message;
   }
@@ -55,9 +74,14 @@ forms.register.addEventListener("submit", async (event) => {
 
   try {
     const formData = new FormData(forms.register);
-    await submitAuthForm("/api/auth/register", Object.fromEntries(formData.entries()));
-    window.location.href = "/app";
+    const data = await submitAuthForm(`${API_BASE_URL}/auth/register`, Object.fromEntries(formData.entries()));
+    saveAuth(data);
+    redirectToApp();
   } catch (error) {
     authMessage.textContent = error.message;
   }
 });
+
+if (getToken()) {
+  redirectToApp();
+}

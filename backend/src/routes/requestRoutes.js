@@ -1,32 +1,30 @@
 const express = require("express");
 
-const { getPool } = require("../config/db");
+const { getCollections, serializeRequestLog, toObjectId } = require("../config/db");
+const { requireAuth } = require("../middleware/auth");
 const { inferUseCases } = require("../utils/useCases");
 
 const router = express.Router();
 
+router.use(requireAuth);
+
 router.get("/config", (req, res) => {
   res.json({
-    user: req.session.user
+    user: req.user
   });
 });
 
 router.get("/history", async (req, res, next) => {
   try {
-    const pool = getPool();
-    const [rows] = await pool.query(
-      `
-        SELECT id, url, method, status_code, response_time_ms, created_at
-        FROM request_logs
-        WHERE user_id = ?
-        ORDER BY created_at DESC
-        LIMIT 8
-      `,
-      [req.session.user.id]
-    );
+    const { requestLogs } = getCollections();
+    const items = await requestLogs
+      .find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .toArray();
 
     return res.json({
-      items: rows
+      items: items.map(serializeRequestLog)
     });
   } catch (error) {
     return next(error);
@@ -35,24 +33,21 @@ router.get("/history", async (req, res, next) => {
 
 router.delete("/history/:id", async (req, res, next) => {
   try {
-    const pool = getPool();
-    const historyId = Number(req.params.id);
+    const { requestLogs } = getCollections();
+    const historyId = toObjectId(req.params.id);
 
-    if (!Number.isInteger(historyId) || historyId <= 0) {
+    if (!historyId) {
       return res.status(400).json({
         message: "Invalid history item."
       });
     }
 
-    const [result] = await pool.query(
-      `
-        DELETE FROM request_logs
-        WHERE id = ? AND user_id = ?
-      `,
-      [historyId, req.session.user.id]
-    );
+    const result = await requestLogs.deleteOne({
+      _id: historyId,
+      userId: req.user.id
+    });
 
-    if (result.affectedRows === 0) {
+    if (result.deletedCount === 0) {
       return res.status(404).json({
         message: "History item not found."
       });
@@ -68,7 +63,7 @@ router.delete("/history/:id", async (req, res, next) => {
 
 router.post("/request", async (req, res, next) => {
   try {
-    const pool = getPool();
+    const { requestLogs } = getCollections();
     const { url, method, headers, body } = req.body;
     const requestMethod = String(method || "GET").toUpperCase();
 
@@ -84,7 +79,7 @@ router.post("/request", async (req, res, next) => {
       });
     }
 
-    let parsedBody = undefined;
+    let parsedBody;
     if (body && ["POST", "PUT", "PATCH", "DELETE"].includes(requestMethod)) {
       try {
         parsedBody = typeof body === "string" ? JSON.parse(body) : body;
@@ -135,13 +130,20 @@ router.post("/request", async (req, res, next) => {
         ? responseData.slice(0, 1200)
         : JSON.stringify(responseData, null, 2).slice(0, 1200);
 
-    await pool.query(
-      `
-        INSERT INTO request_logs (user_id, url, method, status_code, response_time_ms, response_preview)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `,
-      [req.session.user.id, url, requestMethod, response.status, duration, preview]
-    );
+    await requestLogs.insertOne({
+      userId: req.user.id,
+      userEmail: req.user.email,
+      url,
+      apiLink: url,
+      method: requestMethod,
+      requestHeaders: sanitizedHeaders,
+      requestBody: parsedBody ?? null,
+      statusCode: response.status,
+      responseTimeMs: duration,
+      responsePreview: preview,
+      responseBody: responseData,
+      createdAt: new Date()
+    });
 
     return res.json({
       status: response.status,

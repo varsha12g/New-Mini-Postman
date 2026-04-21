@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "functions": {
-    "frontend/server.js": {
-      "includeFiles": "frontend/public/**"
-    }
-  },
   "builds": [
     {
       "src": "frontend/server.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "frontend/public/**"
+        ]
+      }
     }
   ],
   "routes": [

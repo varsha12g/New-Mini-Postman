@@ -1,100 +1,82 @@
-# New Mini Postman
+# Mini JSON Link
 
-Mini Postman ko ab clean split architecture me organize kiya gaya hai:
+This project is now simplified to one flow:
 
-- `frontend/` runs on its own port and serves the login + dashboard UI
-- `backend/` runs on its own port and exposes the JWT-protected API
-- MongoDB Atlas is supported through `backend/.env`
-- CORS is configured so the frontend can safely call the backend without cross-site cookie dependency
+- paste JSON in the frontend
+- save it in MongoDB
+- generate a public API link
+- open that link to get the same JSON response
 
-## Folder Structure
+## Deploy Setup
 
-```text
-.
-|-- backend/
-|   |-- server.js
-|   |-- package.json
-|   |-- .env.example
-|   `-- src/
-|       |-- config/db.js
-|       |-- middleware/auth.js
-|       |-- routes/
-|       `-- utils/useCases.js
-|-- frontend/
-|   |-- server.js
-|   |-- package.json
-|   |-- .env.example
-|   `-- public/
-|       |-- app.html
-|       |-- login.html
-|       `-- assets/
-|-- package.json
-`-- README.md
-```
+- Frontend: Vercel
+- Backend: Render
+- Database: MongoDB Atlas
 
-## What Is Stored In MongoDB Atlas
+Live URLs:
 
-`users` collection:
+- Frontend: [https://new-mini-postman.vercel.app/app](https://new-mini-postman.vercel.app/app)
+- Backend: [https://new-mini-postman.onrender.com/](https://new-mini-postman.onrender.com/)
 
-- `name`
-- `email`
-- `passwordHash`
-- `createdAt`
+## API Endpoints
 
-`request_logs` collection:
+- `GET /api/health`
+- `GET /api/links`
+- `POST /api/links`
+- `DELETE /api/links/:id`
+- `GET /api/data/:id`
 
-- `userId`
-- `userEmail`
-- `apiLink`
-- `url`
-- `method`
-- `requestHeaders`
-- `requestBody`
-- `statusCode`
-- `responseTimeMs`
-- `responsePreview`
-- `responseBody`
-- `createdAt`
+## Local Development
 
-Note:
+1. Run installs:
+   `npm run install:all`
+2. Create `backend/.env`
+3. Create `frontend/.env`
+4. Start both apps:
+   `npm run dev`
 
-- Password plain text me store nahi hota.
-- Security ke liye `passwordHash` store hota hai.
+## Backend Env
 
-## Setup
-
-1. Root par sab installs ke liye run karo: `npm run install:all`
-2. `backend/.env.example` ko dekh kar `backend/.env` banao
-3. Atlas URI ko `MONGODB_URI` me daalo
-4. `frontend/.env.example` ko dekh kar `frontend/.env` banao agar custom ports ya backend URL chahiye
-5. Dono apps ko saath chalane ke liye run karo: `npm run dev`
-
-## Default Ports
-
-- Frontend: `http://127.0.0.1:3000`
-- Backend: `http://127.0.0.1:5000`
-
-## Example Backend Env
+Create `backend/.env`:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://your-user:your-password@your-cluster.mongodb.net/mini_postman?retryWrites=true&w=majority&appName=MiniPostman
+MONGODB_URI=mongodb+srv://your-user:your-password@your-cluster.mongodb.net/?appName=Mini-postman
 MONGODB_DB=mini_postman
-JWT_SECRET=replace-this-with-a-long-random-secret
-CORS_ALLOWED_ORIGINS=https://your-frontend-domain.vercel.app
+CORS_ALLOWED_ORIGINS=https://new-mini-postman.vercel.app
 ```
 
-## Auth Flow
+For Render:
 
-- Register/Login backend se JWT token return karta hai
-- Frontend token ko browser storage me save karta hai
-- Protected API calls `Authorization: Bearer <token>` ke saath backend par jati hain
-- Backend token verify karke MongoDB data return karta hai
+- Root Directory: `backend`
+- Build Command: `npm install`
+- Start Command: `npm start`
+
+## Frontend Env
+
+Create `frontend/.env` for local use:
+
+```env
+PORT=3000
+BACKEND_API_BASE_URL=http://127.0.0.1:5000/api
+```
+
+For Vercel:
+
+- Project Root: repo root
+- Framework Preset: `Other`
+- Environment Variable:
+
+```env
+BACKEND_API_BASE_URL=https://new-mini-postman.onrender.com/api
+```
+
+If you do not set that Vercel env var, the code now falls back to the Render backend URL automatically when running on Vercel.
 
 ## Notes
 
-- Production me `JWT_SECRET` env var set karo
-- Backend cookies use nahi karta, isliye cross-site cookie issue avoid hota hai
-- Backend CORS localhost, Vercel preview domains, aur optional `CORS_ALLOWED_ORIGINS` entries allow karta hai
-- Agar startup par Mongo error aaye to Atlas URI, IP whitelist, aur DB user credentials check karo
-- Request history per-user save hoti hai aur latest 8 items UI me dikhte hain
+- Render root `/` now returns a small JSON status response.
+- The public API link format is:
+  `https://new-mini-postman.onrender.com/api/data/<id>`
+- If CORS fails on production, confirm `CORS_ALLOWED_ORIGINS` on Render includes:
+  `https://new-mini-postman.vercel.app`

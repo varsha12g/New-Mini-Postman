@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>New Mini Postman</title>
+    <title>Mini JSON Link</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,178 +14,93 @@
   </head>
   <body class="dashboard-page">
     <main class="page-shell">
+      <header class="topbar glass-panel">
+        <div class="brand-block">
+          <span class="eyebrow">JSON TO API LINK</span>
+          <h1>Mini JSON Link</h1>
+        </div>
+        <div class="topbar-actions">
+          <span id="connectionBadge" class="badge">Checking database...</span>
+        </div>
+      </header>
+
       <section class="hero glass-panel">
         <div>
-          <span class="eyebrow">API TESTING TOOL</span>
-          <h1>My Mini Postman</h1>
-          <p>
-            Test APIs, inspect JSON responses, and keep recent requests in one secure dashboard.
-          </p>
+          <span class="eyebrow">SIMPLE FLOW</span>
+          <h1>Create a public API link from JSON</h1>
+          <p>Paste JSON, save it in MongoDB, and get a direct API link that returns the same JSON.</p>
           <div class="pill-row">
-            <div class="pill-group">
-              <span>GET</span>
-              <span>POST</span>
-              <span>PUT</span>
-              <span>PATCH</span>
-              <span>DELETE</span>
-            </div>
-            <span>Separate Ports</span>
-            <span>JWT + MongoDB</span>
+            <span>MongoDB</span>
+            <span>JSON Storage</span>
+            <span>API Link</span>
+            <span>No Login</span>
           </div>
         </div>
-        <div class="hero-side">
-          <button
-            id="themeToggle"
-            class="icon-button mode-toggle"
-            type="button"
-            aria-label="Switch theme"
-            title="Switch theme"
-          ></button>
-          <div class="menu-wrap">
-            <button
-              id="profileMenuButton"
-              class="icon-button menu-button"
-              type="button"
-              aria-label="Open quick menu"
-              title="Open quick menu"
-              aria-expanded="false"
-            >
-              <span aria-hidden="true">&#8942;</span>
-            </button>
-            <div id="quickMenu" class="quick-menu" hidden>
-              <div class="user-chip menu-user-chip">
-                <span>Logged in as</span>
-                <strong id="userName">...</strong>
-              </div>
-              <button id="historyShortcut" class="secondary-button menu-action menu-history-trigger" type="button">
-                History
-              </button>
-            </div>
-          </div>
+        <div class="hero-note">
+          <span id="latestLinkBadge" class="badge">No link created yet</span>
+          <p>Use the generated link anywhere you need a simple JSON API response.</p>
         </div>
       </section>
 
       <section class="dashboard-grid">
-        <div class="builder glass-panel">
+        <form id="createLinkForm" class="builder glass-panel">
           <div class="section-head">
-            <h2>API TESTING TOOL</h2>
-            <span class="badge">Mini Postman</span>
+            <h2>Create JSON API Link</h2>
+            <span class="badge">MongoDB Save</span>
           </div>
 
           <label class="field-block">
-            <span>URL</span>
-            <input id="apiUrl" type="url" placeholder="https://randomuser.me/api/" />
+            <span>Name</span>
+            <input id="linkName" type="text" placeholder="Users API" />
           </label>
-
-          <div class="method-row">
-            <label class="field-block compact">
-              <span>HTTP Method</span>
-              <select id="httpMethod">
-                <option>GET</option>
-                <option>POST</option>
-                <option>PUT</option>
-                <option>PATCH</option>
-                <option>DELETE</option>
-              </select>
-            </label>
-            <div class="method-hint">
-              `GET` fetches data, `POST` creates, `PUT/PATCH` updates, and `DELETE` removes.
-            </div>
-          </div>
-
-          <div class="section-head">
-            <h3>Headers</h3>
-            <button id="addHeader" class="secondary-button small">Add Header</button>
-          </div>
-          <p class="muted">Add custom headers if your API needs them.</p>
-          <div id="headersList" class="headers-list"></div>
 
           <label class="field-block">
-            <span>Body (JSON only)</span>
-            <textarea id="requestBody" rows="8" placeholder='{\n  "title": "hello"\n}'></textarea>
+            <span>JSON Data</span>
+            <textarea id="jsonInput" rows="14" placeholder='{\n  "users": [\n    {\n      "name": "Varsha"\n    }\n  ]\n}' required></textarea>
           </label>
 
-          <button id="sendRequest" class="primary-button coral wide">Send Request</button>
-        </div>
+          <p class="muted">Enter valid JSON. This exact data will be returned by the generated API link.</p>
+          <button id="createLinkButton" class="primary-button coral wide" type="submit">Create API Link</button>
+          <p id="formMessage" class="status-text neutral-status"></p>
+        </form>
 
         <div class="response-stack">
           <div class="glass-panel response-panel">
             <div class="section-head">
-              <h2>Response</h2>
-              <div class="response-actions">
-                <span class="badge">Live output</span>
-                <button
-                  id="copyJson"
-                  class="icon-button copy-button"
-                  type="button"
-                  aria-label="Copy response"
-                  title="Copy response"
-                ></button>
-              </div>
+              <h2>Latest API Link</h2>
+              <span class="badge">Ready to use</span>
             </div>
-
-            <div class="metrics-grid">
-              <article>
-                <span class="metric-label">Status</span>
-                <strong id="statusCode">-</strong>
-              </article>
-              <article>
-                <span class="metric-label">Time</span>
-                <strong id="responseTime">-</strong>
-              </article>
+            <div class="suggestion-list">
+              <p id="latestLinkText">Create a JSON API link to see it here.</p>
             </div>
-
-            <div class="response-frame">
-              <pre id="responseOutput" class="response-output">Response will appear here...</pre>
+            <div class="link-actions">
+              <button id="openLatestLink" class="secondary-button" type="button">Open Link</button>
+              <button id="copyLatestLink" class="secondary-button" type="button">Copy Link</button>
             </div>
           </div>
 
           <div class="glass-panel info-panel">
             <div class="section-head">
-              <h2>Where can you use this API?</h2>
-              <span class="badge">Simple ideas</span>
+              <h2>JSON Preview</h2>
+              <span class="badge">Stored output</span>
             </div>
-            <div id="suggestionList" class="suggestion-list">
-              <p>Test an API first to see suggestions here.</p>
+            <div class="response-frame simple-frame">
+              <pre id="jsonPreview" class="response-output is-empty">Stored JSON will appear here...</pre>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="historySection" class="glass-panel history-wide">
+      <section class="glass-panel history-wide">
         <div class="section-head">
-          <h2>Recent Requests</h2>
-          <span class="badge">History</span>
+          <h2>Saved API Links</h2>
+          <span id="savedCount" class="badge">0 links</span>
         </div>
-        <div id="historyList" class="history-list history-grid">
-          <p>No recent requests yet.</p>
+        <div id="savedLinks" class="saved-api-list">
+          <p>No saved links yet.</p>
         </div>
       </section>
     </main>
-
-    <div id="historyModal" class="modal-shell" hidden>
-      <div id="historyModalBackdrop" class="modal-backdrop"></div>
-      <section class="modal-card glass-panel" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
-        <div class="section-head modal-head">
-          <div>
-            <h2 id="historyModalTitle">Quick History</h2>
-            <p class="muted modal-copy">This history is stored separately from the main list.</p>
-          </div>
-          <button
-            id="closeHistoryModal"
-            class="icon-button"
-            type="button"
-            aria-label="Close history popup"
-            title="Close history popup"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div id="menuHistoryList" class="menu-history-list modal-history-list">
-          <p>No quick history yet.</p>
-        </div>
-      </section>
-    </div>
 
     <script src="/config.js"></script>
     <script src="/assets/app.js"></script>

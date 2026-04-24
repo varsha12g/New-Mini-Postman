@@ -5,6 +5,7 @@ const { requireAuth } = require("../middleware/auth");
 const { inferUseCases } = require("../utils/useCases");
 
 const router = express.Router();
+const REQUEST_TIMEOUT_MS = 15000;
 
 router.use(requireAuth);
 
@@ -107,11 +108,15 @@ router.post("/request", async (req, res, next) => {
       response = await fetch(url, {
         method: requestMethod,
         headers: sanitizedHeaders,
-        body: parsedBody ? JSON.stringify(parsedBody) : undefined
+        body: parsedBody ? JSON.stringify(parsedBody) : undefined,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
       });
     } catch (error) {
       return res.status(502).json({
-        message: "The target API could not be reached. Check the URL or network access and try again."
+        message:
+          error?.name === "TimeoutError"
+            ? `The target API took longer than ${REQUEST_TIMEOUT_MS / 1000} seconds to respond.`
+            : "The target API could not be reached. Check the URL or network access and try again."
       });
     }
     const duration = Date.now() - startedAt;

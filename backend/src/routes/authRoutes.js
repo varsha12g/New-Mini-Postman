@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 
 const { getCollections, serializeUser } = require("../config/db");
-const { requireAuth, signAuthToken } = require("../middleware/auth");
+const { requireAuth, revokeAuthToken, signAuthToken } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -115,10 +115,16 @@ router.post("/login", async (req, res, next) => {
   }
 });
 
-router.post("/logout", (req, res) => {
-  res.json({
-    message: "Logged out successfully."
-  });
+router.post("/logout", requireAuth, async (req, res, next) => {
+  try {
+    await revokeAuthToken(req.authToken, req.authPayload);
+
+    return res.json({
+      message: "Logged out successfully."
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 module.exports = router;

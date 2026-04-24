@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Creation | New Mini Postman</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body class="dashboard-page">
+    <main class="page-shell">
+      <header class="topbar glass-panel">
+        <div class="brand-block">
+          <span class="eyebrow">API CREATION PAGE</span>
+          <h1>New Mini Postman</h1>
+        </div>
+        <nav class="navbar" aria-label="Dashboard pages">
+          <a href="/app" class="nav-link">API Testing</a>
+          <a href="/api-creation" class="nav-link active">API Creation</a>
+        </nav>
+        <div class="topbar-actions">
+          <div id="userChip" class="user-chip" hidden>
+            <span>Logged in as</span>
+            <strong id="userName">...</strong>
+          </div>
+          <button
+            id="themeToggle"
+            class="secondary-button theme-toggle-button"
+            type="button"
+            aria-label="Switch theme"
+            title="Switch theme"
+          ></button>
+          <button id="logoutButton" class="secondary-button logout-button" type="button" hidden>Logout</button>
+        </div>
+      </header>
+
+      <section class="hero glass-panel">
+        <div>
+          <span class="eyebrow">API CREATION PAGE</span>
+          <h1>Create and save API setups</h1>
+          <p>
+            Build reusable API entries, save them in MongoDB, and open any saved API in the tester page with the same link, method, headers, and body.
+          </p>
+          <div class="pill-row">
+            <span>Same MongoDB</span>
+            <span>JWT Protected</span>
+            <span>Reusable Inputs</span>
+            <span>Use in Tester</span>
+          </div>
+        </div>
+        <div class="hero-note">
+          <span class="badge">New backend module</span>
+          <p>Your saved APIs are attached to the same account and previous database, not a separate storage flow.</p>
+        </div>
+      </section>
+
+      <section class="dashboard-grid create-grid">
+        <form id="createApiForm" class="builder glass-panel">
+          <div class="section-head">
+            <h2>Create API</h2>
+            <span class="badge">MongoDB Collection</span>
+          </div>
+
+          <label class="field-block">
+            <span>API Name</span>
+            <input id="apiName" type="text" placeholder="User List API" required />
+          </label>
+
+          <label class="field-block">
+            <span>API Link</span>
+            <input id="apiLink" type="url" placeholder="https://jsonplaceholder.typicode.com/users" required />
+          </label>
+
+          <div class="method-row">
+            <label class="field-block compact">
+              <span>HTTP Method</span>
+              <select id="apiMethod">
+                <option>GET</option>
+                <option>POST</option>
+                <option>PUT</option>
+                <option>PATCH</option>
+                <option>DELETE</option>
+              </select>
+            </label>
+            <div class="method-hint">
+              Save the method you usually use so the old tester page opens with the same request details.
+            </div>
+          </div>
+
+          <label class="field-block">
+            <span>Description</span>
+            <textarea
+              id="apiDescription"
+              rows="4"
+              placeholder="What does this API do and where will you use it?"
+            ></textarea>
+          </label>
+
+          <div class="section-head">
+            <h3>Headers</h3>
+            <button id="addApiHeader" class="secondary-button small" type="button">Add Header</button>
+          </div>
+          <p class="muted">Store headers that you want to reuse later in the tester page.</p>
+          <div id="apiHeadersList" class="headers-list"></div>
+
+          <label class="field-block">
+            <span>Sample Body (JSON only)</span>
+            <textarea id="apiBody" rows="8" placeholder='{\n  "name": "Mini Postman"\n}'></textarea>
+          </label>
+
+          <button id="saveApiButton" class="primary-button coral wide" type="submit">Save API</button>
+          <p id="createApiMessage" class="status-text neutral-status"></p>
+        </form>
+
+        <div class="response-stack">
+          <div class="glass-panel info-panel">
+            <div class="section-head">
+              <h2>How to use it</h2>
+              <span class="badge">Simple flow</span>
+            </div>
+            <div class="suggestion-list">
+              <p>Save API link, method, reusable headers, and a sample body in one place.</p>
+              <p>Open any saved item in the API Testing page without rewriting the same values again.</p>
+              <p>Keep the viva flow clearer by showing both testing and creation in one navbar-based dashboard.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel info-panel">
+            <div class="section-head">
+              <h2>Saved API data</h2>
+              <span id="savedApiCount" class="badge">0 items</span>
+            </div>
+            <div class="suggestion-list">
+              <p id="apiCreationConnectionStatus">Checking backend and database connection...</p>
+              <p>Saved APIs are linked to the logged-in user.</p>
+              <p>The backend now stores them in a separate MongoDB collection inside the same database.</p>
+              <p>Delete old APIs anytime from the list below.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass-panel history-wide">
+        <div class="section-head">
+          <h2>Saved APIs</h2>
+          <span class="badge">API Library</span>
+        </div>
+        <div id="savedApiList" class="saved-api-list">
+          <p>No saved APIs yet.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="/config.js"></script>
+    <script src="/assets/dashboard-common.js"></script>
+    <script src="/assets/api-creation.js"></script>
+  </body>
+</html>
